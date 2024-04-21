@@ -1,6 +1,6 @@
 CC=aarch64-linux-gnu-g++
-CFLAGS=-fPIC -Wall
-LDFLAGS=-shared
+CFLAGS=-fPIC -Wall -pthread
+LDFLAGS=-shared -L. -lARMLIB -pthread
 TARGET_LIB=libtcppi.so
 
 all: $(TARGET_LIB)
@@ -12,6 +12,6 @@ tcppi.o: tcppi.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f *.o *.so
+	rm -f *.o libtcppi.so
 
 .PHONY: all clean

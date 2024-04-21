@@ -1,11 +1,15 @@
 #include "tcppi.h"
 
-#include <iostream>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <string.h>
-#include <arpa/inet.h>
+
+void sendmsgThread(Mirobot* ptr, string str, int* flag){
+    if(ptr){
+        ptr->send_msg(str, true);
+    }
+    // cout<<endl<<"*flag = "<< *flag<<" flag addr = "<<flag<<endl;
+    *flag = 1;
+    // cout<<"subthread change syn through ptr\n";
+    // cout<<endl<<"*flag = "<< *flag<<" flag addr = "<<flag<<endl;
+}
 
 void listen(const char* dstIP, int dstPort) {
     int server_fd, new_socket;
@@ -79,3 +83,4 @@ void send(const char* dstIP, int dstPort, char* message) {
     // 关闭socket
     close(sock);
 }
+

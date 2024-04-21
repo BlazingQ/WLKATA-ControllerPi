@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "*.sql": "sql",
+        "*.cmm": "c",
+        "*.ir": "yaml",
+        "*.v": "coq",
+        "iostream": "cpp",
+        "thread": "cpp"
+    }
+}
