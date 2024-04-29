@@ -5,10 +5,63 @@ void sendmsgThread(Mirobot* ptr, string str, int* flag){
     if(ptr){
         ptr->send_msg(str, true);
     }
-    // cout<<endl<<"*flag = "<< *flag<<" flag addr = "<<flag<<endl;
     *flag = 1;
     // cout<<"subthread change syn through ptr\n";
     // cout<<endl<<"*flag = "<< *flag<<" flag addr = "<<flag<<endl;
+}
+
+void updateLocs(string cmd, float locs[]){
+    istringstream stream(cmd);
+    string token;
+    char identifier;
+    float value;
+    bool isincre = false;
+    while (stream >> token) {
+        if (token[0] == 'X' || token[0] == 'Y' || token[0] == 'Z' || 
+            token[0] == 'A' || token[0] == 'B' || token[0] == 'C') {
+            identifier = token[0];
+            size_t idx = 1; // 开始解析的位置，跳过标识符
+
+            // 处理数值可能直接跟在标识符后面的情况
+            if (!isdigit(token[idx]) && token[idx] != '-' && token[idx] != '+') {
+                idx++; // 如果标识符后面有空格，则跳过
+            }
+
+            value = stof(token.substr(idx));
+
+            if(!isincre){
+            if (identifier == 'X') {
+                locs[0] = value;
+            } else if (identifier == 'Y') {
+                locs[1] = value;
+            } else if (identifier == 'Z') {
+                locs[2] = value;
+            } else if (identifier == 'A') {
+                locs[3] = value;
+            } else if (identifier == 'B') {
+                locs[4] = value;
+            } else if (identifier == 'C') {
+                locs[5] = value;
+            }
+            }else{
+            if (identifier == 'X') {
+                locs[0] += value;
+            } else if (identifier == 'Y') {
+                locs[1] += value;
+            } else if (identifier == 'Z') {
+                locs[2] += value;
+            } else if (identifier == 'A') {
+                locs[3] += value;
+            } else if (identifier == 'B') {
+                locs[4] += value;
+            } else if (identifier == 'C') {
+                locs[5] += value;
+            }
+            }
+        }else if(token == "G91"){
+            isincre = true;
+        }
+    }
 }
 
 int create_connection(const char* server_ip, int server_port) {
@@ -38,7 +91,7 @@ int create_connection(const char* server_ip, int server_port) {
     return sock;
 }
 
-bool send_message(int sock, char* message) {
+bool send_message(int sock, const char* message) {
     if (send(sock, message, strlen(message), 0) < 0) {
         std::cerr << "Failed to send message." << std::endl;
         return false;
