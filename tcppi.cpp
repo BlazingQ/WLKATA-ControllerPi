@@ -64,6 +64,20 @@ void updateLocs(string cmd, float locs[]){
     }
 }
 
+void appendToFile(const std::string& str, const std::string& filename) {
+    // 打开文件，使用 std::ios::app 模式以追加方式写入
+    std::ofstream file(filename, std::ios::app);
+    if (file.is_open()) {
+        // 写入字符串并添加换行符
+        file << str << '\n';
+        // 关闭文件
+        file.close();
+    } else {
+        // 文件打开失败，输出错误消息
+        std::cerr << "Unable to open file: " << filename << std::endl;
+    }
+}
+
 int create_connection(const char* server_ip, int server_port) {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock == -1) {
