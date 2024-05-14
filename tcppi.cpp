@@ -69,7 +69,7 @@ void appendToFile(const std::string& str, const std::string& filename) {
     std::ofstream file(filename, std::ios::app);
     if (file.is_open()) {
         // 写入字符串并添加换行符
-        file << str << '\n';
+        file << str << ',';
         // 关闭文件
         file.close();
     } else {
