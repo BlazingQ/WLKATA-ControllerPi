@@ -10,6 +10,13 @@ void sendmsgThread(Mirobot* ptr, string str, int* flag){
     // cout<<endl<<"*flag = "<< *flag<<" flag addr = "<<flag<<endl;
 }
 
+string timenow(){
+    auto now = std::chrono::high_resolution_clock::now();
+    auto duration_since_epoch = now.time_since_epoch();
+    long long int millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration_since_epoch).count();
+    return to_string(millis);
+}
+
 void updateLocs(string cmd, float locs[]){
     istringstream stream(cmd);
     string token;

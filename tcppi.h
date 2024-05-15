@@ -14,6 +14,7 @@
 using namespace std;
 
 void updateLocs(string cmd, float locs[]);
+string timenow();
 void sendmsgThread(Mirobot* ptr, string str, int* flag);
 void appendToFile(const std::string& str, const std::string& filename);
 int create_connection(const char* server_ip, int server_port);
