@@ -18,26 +18,63 @@ string timenow(){
     return to_string(millis);
 }
 
-cJSON* statusToJsonstr(string status[]) {
-    // 创建一个新的 cJSON 对象
+//应该有必要传递一下谁需要验证
+string statusWrapper(int armid, string statuss[], int statuss_len) {
     cJSON *json = cJSON_CreateObject();
 
-    // 添加数据到 JSON 对象，注意处理整数转换
-    cJSON_AddNumberToObject(json, "ArmId", stoi(status[0]));
-    cJSON_AddNumberToObject(json, "CmdId", stoi(status[1]));
-    cJSON_AddStringToObject(json, "Cmds", status[2].c_str());
-    cJSON_AddStringToObject(json, "Locs", status[3].c_str());
-    cJSON_AddStringToObject(json, "LastCmdTime", status[4].c_str());
-    
-    return json;
+    cJSON_AddNumberToObject(json, "armid", armid);
+    cJSON *armsArray = cJSON_CreateArray();
+    for (int i = 0; i < statuss_len; i++) {
+        if (statuss[i].empty()) {
+            continue;  // 跳过空字符串
+        }
+        cJSON *statusItem = cJSON_Parse(statuss[i].c_str());
+        if (statusItem != NULL) {
+            cJSON_AddItemToArray(armsArray, statusItem);
+        } else {
+            // 如果解析失败，释放已创建的 JSON 对象并返回 NULL
+            cJSON_Delete(json);
+            return NULL;
+        }
+    }
+
+    cJSON_AddItemToObject(json, "Arms", armsArray);
+
+    return string(cJSON_Print(json));
 }
 
+//根据ARM存储的内容更新自身状态，传输给中控
+string updateStatusJson(int armid, int cmdid, string cmds, string durations, float locs[]) {
+
+    cJSON *json = cJSON_CreateObject();
+    std::ostringstream oss;
+    for(int i = 0; i < 6; ++i) {
+        if(i != 0) {
+            oss << ","; 
+        }
+        oss << locs[i];
+    }
+    string locsstr = oss.str();
+    
+    cJSON_AddNumberToObject(json, "ArmId", armid);
+    cJSON_AddNumberToObject(json, "CmdId", cmdid);
+    cJSON_AddStringToObject(json, "Cmds", cmds.c_str());
+    cJSON_AddStringToObject(json, "Durations", durations.c_str());
+    cJSON_AddStringToObject(json, "Locs", locsstr.c_str());
+    cJSON_AddStringToObject(json, "StartTime", timenow().c_str());
+
+    string jsonstr = string(cJSON_Print(json));
+    
+    return jsonstr;
+}
+
+//这个算法的正确基于发出的指令被执行，即指令本身不能是错的
 void updateLocs(string cmd, float locs[]){
     istringstream stream(cmd);
     string token;
     char identifier;
     float value;
-    bool isincre = false;
+    bool isincre = false; //一次只考虑当前这一条指令，简单这么写就行
     while (stream >> token) {
         if (token[0] == 'X' || token[0] == 'Y' || token[0] == 'Z' || 
             token[0] == 'A' || token[0] == 'B' || token[0] == 'C') {
@@ -52,33 +89,33 @@ void updateLocs(string cmd, float locs[]){
             value = stof(token.substr(idx));
 
             if(!isincre){
-            if (identifier == 'X') {
-                locs[0] = value;
-            } else if (identifier == 'Y') {
-                locs[1] = value;
-            } else if (identifier == 'Z') {
-                locs[2] = value;
-            } else if (identifier == 'A') {
-                locs[3] = value;
-            } else if (identifier == 'B') {
-                locs[4] = value;
-            } else if (identifier == 'C') {
-                locs[5] = value;
-            }
+                if (identifier == 'X') {
+                    locs[0] = value;
+                } else if (identifier == 'Y') {
+                    locs[1] = value;
+                } else if (identifier == 'Z') {
+                    locs[2] = value;
+                } else if (identifier == 'A') {
+                    locs[3] = value;
+                } else if (identifier == 'B') {
+                    locs[4] = value;
+                } else if (identifier == 'C') {
+                    locs[5] = value;
+                }
             }else{
-            if (identifier == 'X') {
-                locs[0] += value;
-            } else if (identifier == 'Y') {
-                locs[1] += value;
-            } else if (identifier == 'Z') {
-                locs[2] += value;
-            } else if (identifier == 'A') {
-                locs[3] += value;
-            } else if (identifier == 'B') {
-                locs[4] += value;
-            } else if (identifier == 'C') {
-                locs[5] += value;
-            }
+                if (identifier == 'X') {
+                    locs[0] += value;
+                } else if (identifier == 'Y') {
+                    locs[1] += value;
+                } else if (identifier == 'Z') {
+                    locs[2] += value;
+                } else if (identifier == 'A') {
+                    locs[3] += value;
+                } else if (identifier == 'B') {
+                    locs[4] += value;
+                } else if (identifier == 'C') {
+                    locs[5] += value;
+                }
             }
         }else if(token == "G91"){
             isincre = true;

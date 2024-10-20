@@ -61,5 +61,6 @@
         "streambuf": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp"
-    }
+    },
+    "makefile.configureOnOpen": false
 }
