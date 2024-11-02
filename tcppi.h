@@ -13,13 +13,16 @@
 #include <arpa/inet.h>
 #include <thread>
 #include <fstream>
+#include <chrono>
 using namespace std;
 // using json = nlohmann::json;
 
 void updateLocs(string cmd, float locs[]);
 string timenow();
-string statusWrapper(int armid, string statuss[], int statuss_len);
+void sleeppi(int duration);
+string statusWrapper(int armid, int cmdid, string statuss[], int statuss_len);
 string updateStatusJson(int armid, int cmdid, string cmds, string durations, float locs[]);
+
 void sendmsgThread(Mirobot* ptr, string str, int* flag);
 void appendToFile(const std::string& str, const std::string& filename);
 int create_connection(const char* server_ip, int server_port);

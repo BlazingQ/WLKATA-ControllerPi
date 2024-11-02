@@ -60,7 +60,14 @@
         "stop_token": "cpp",
         "streambuf": "cpp",
         "cinttypes": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "any": "cpp",
+        "codecvt": "cpp",
+        "forward_list": "cpp",
+        "optional": "cpp",
+        "iomanip": "cpp",
+        "ranges": "cpp",
+        "valarray": "cpp"
     },
     "makefile.configureOnOpen": false
 }

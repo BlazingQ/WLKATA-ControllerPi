@@ -1,14 +1,62 @@
 #include "tcppi.h"
 
 
+// 将单个指令串转换为字符串数组，指定起始索引和长度
+std::vector<std::string> decodeCmdStr(const std::string& commands, size_t startIndex, size_t length) {
+    std::vector<std::string> commandArray;
+    std::stringstream ss(commands);
+    std::string command;
+    size_t index = 0;
+
+    while (std::getline(ss, command, ',')) {
+        if (index >= startIndex && index < startIndex + length) {
+            commandArray.push_back(command);
+        }
+        index++;
+    }
+
+    return commandArray;
+}
+
+std::string subCmdStr(const std::string& commands, size_t startIndex, size_t length) {
+    std::string subcmdstr;
+    std::stringstream ss(commands);
+    std::string command;
+    size_t index = 0;
+
+    while (std::getline(ss, command, ',')) {
+        if (index >= startIndex && index < startIndex + length) {
+            if(!subcmdstr.empty()){
+                subcmdstr += ",";
+            }
+            subcmdstr += command;
+        }
+        index++;
+    }
+
+    return subcmdstr;
+}
+
+// 将字符串数组转换为单个指令串，指定起始索引和长度
+std::string encodeCmdStr(string commandArray[], int arraysize, size_t startIndex, size_t length) {
+    std::string commands;
+    
+    for (size_t i = startIndex; i < startIndex + length && i < arraysize; ++i) {
+        commands += commandArray[i];
+        if (i < startIndex + length - 1 && i < arraysize - 1) {
+            commands += ","; // 在每个指令后添加逗号，除了最后一个
+        }
+    }
+
+    return commands;
+}
+
 void sendmsgThread(Mirobot* ptr, string str, int* flag){
     if(ptr){
         ptr->send_msg(str, true);
     }
     *flag = 1;
     
-    // cout<<"subthread change syn through ptr\n";
-    // cout<<endl<<"*flag = "<< *flag<<" flag addr = "<<flag<<endl;
 }
 
 string timenow(){
@@ -18,12 +66,18 @@ string timenow(){
     return to_string(millis);
 }
 
-//应该有必要传递一下谁需要验证
-string statusWrapper(int armid, string statuss[], int statuss_len) {
+void sleeppi(int duration){
+    std::this_thread::sleep_for(std::chrono::milliseconds(duration));
+}
+
+//应该有必要传递一下谁需要验证，跳过了空字符串
+string statusWrapper(int armid, int cmdid, string statuss[], int statuss_len) {
     cJSON *json = cJSON_CreateObject();
 
     cJSON_AddNumberToObject(json, "armid", armid);
+    cJSON_AddNumberToObject(json, "cmdid", cmdid);
     cJSON *armsArray = cJSON_CreateArray();
+    cJSON *finalArray = cJSON_CreateArray();
     for (int i = 0; i < statuss_len; i++) {
         if (statuss[i].empty()) {
             continue;  // 跳过空字符串
@@ -66,6 +120,33 @@ string updateStatusJson(int armid, int cmdid, string cmds, string durations, flo
     string jsonstr = string(cJSON_Print(json));
     
     return jsonstr;
+}
+
+std::unordered_map<std::string, int> parseServerMsg(const std::string& jsonString) {
+    // 创建一个字典来存储解析结果
+    std::unordered_map<std::string, int> result;
+
+    // 解析 JSON 字符串
+    cJSON* json = cJSON_Parse(jsonString.c_str());
+    if (json == nullptr) {
+        std::cerr << "JSON解析失败" << std::endl;
+        return result; // 返回空字典
+    }
+
+    // 提取字段并存储在字典中
+    cJSON* armid = cJSON_GetObjectItem(json, "armid");
+    cJSON* cmdid = cJSON_GetObjectItem(json, "cmdid");
+    cJSON* vrfres = cJSON_GetObjectItem(json, "vrfres");
+
+    if (armid != nullptr && cmdid != nullptr && vrfres != nullptr) {
+        result["armid"] = armid->valueint;
+        result["cmdid"] = cmdid->valueint;
+        result["vrfres"] = vrfres->valueint;
+    }
+
+    // 释放 cJSON 对象
+    cJSON_Delete(json);
+    return result; // 返回结果字典
 }
 
 //这个算法的正确基于发出的指令被执行，即指令本身不能是错的
@@ -122,6 +203,8 @@ void updateLocs(string cmd, float locs[]){
         }
     }
 }
+
+
 
 void appendToFile(const std::string& str, const std::string& filename) {
     // 打开文件，使用 std::ios::app 模式以追加方式写入
