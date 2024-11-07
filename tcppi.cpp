@@ -2,11 +2,11 @@
 
 
 // 将单个指令串转换为字符串数组，指定起始索引和长度
-std::vector<std::string> decodeCmdStr(const std::string& commands, size_t startIndex, size_t length) {
+std::vector<std::string> decodeCommaStr(const std::string& commands, int startIndex, int length) {
     std::vector<std::string> commandArray;
     std::stringstream ss(commands);
     std::string command;
-    size_t index = 0;
+    int index = 0;
 
     while (std::getline(ss, command, ',')) {
         if (index >= startIndex && index < startIndex + length) {
@@ -18,11 +18,11 @@ std::vector<std::string> decodeCmdStr(const std::string& commands, size_t startI
     return commandArray;
 }
 
-std::string subCmdStr(const std::string& commands, size_t startIndex, size_t length) {
+std::string subCommaStr(const std::string& commands, int startIndex, int length) {
     std::string subcmdstr;
     std::stringstream ss(commands);
     std::string command;
-    size_t index = 0;
+    int index = 0;
 
     while (std::getline(ss, command, ',')) {
         if (index >= startIndex && index < startIndex + length) {
@@ -38,10 +38,10 @@ std::string subCmdStr(const std::string& commands, size_t startIndex, size_t len
 }
 
 // 将字符串数组转换为单个指令串，指定起始索引和长度
-std::string encodeCmdStr(string commandArray[], int arraysize, size_t startIndex, size_t length) {
+std::string encodeCommaStr(std::string commandArray[], int arraysize, int startIndex, int length) {
     std::string commands;
     
-    for (size_t i = startIndex; i < startIndex + length && i < arraysize; ++i) {
+    for (int i = startIndex; i < startIndex + length && i < arraysize; ++i) {
         commands += commandArray[i];
         if (i < startIndex + length - 1 && i < arraysize - 1) {
             commands += ","; // 在每个指令后添加逗号，除了最后一个
@@ -50,7 +50,6 @@ std::string encodeCmdStr(string commandArray[], int arraysize, size_t startIndex
 
     return commands;
 }
-
 void sendmsgThread(Mirobot* ptr, string str, int* flag){
     if(ptr){
         ptr->send_msg(str, true);
@@ -71,13 +70,14 @@ void sleeppi(int duration){
 }
 
 //应该有必要传递一下谁需要验证，跳过了空字符串
-string statusWrapper(int armid, int cmdid, string statuss[], int statuss_len) {
+string statusWrapper(int armid, int cmdid, int isinit, string statuss[], int statuss_len) {
     cJSON *json = cJSON_CreateObject();
 
     cJSON_AddNumberToObject(json, "armid", armid);
     cJSON_AddNumberToObject(json, "cmdid", cmdid);
+    cJSON_AddNumberToObject(json, "isinit", isinit);
     cJSON *armsArray = cJSON_CreateArray();
-    cJSON *finalArray = cJSON_CreateArray();
+    // cJSON *finalArray = cJSON_CreateArray();
     for (int i = 0; i < statuss_len; i++) {
         if (statuss[i].empty()) {
             continue;  // 跳过空字符串
@@ -160,7 +160,7 @@ void updateLocs(string cmd, float locs[]){
         if (token[0] == 'X' || token[0] == 'Y' || token[0] == 'Z' || 
             token[0] == 'A' || token[0] == 'B' || token[0] == 'C') {
             identifier = token[0];
-            size_t idx = 1; // 开始解析的位置，跳过标识符
+            int idx = 1; // 开始解析的位置，跳过标识符
 
             // 处理数值可能直接跟在标识符后面的情况
             if (!isdigit(token[idx]) && token[idx] != '-' && token[idx] != '+') {

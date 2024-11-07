@@ -6,6 +6,7 @@
 #include "cJSON.h"
 
 #include <iostream>
+#include<unordered_map>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -17,11 +18,15 @@
 using namespace std;
 // using json = nlohmann::json;
 
+std::vector<std::string> decodeCommaStr(const std::string& commands, int startIndex, int length);
+std::string subCommaStr(const std::string& commands, int startIndex, int length);
+std::string encodeCommaStr(std::string commandArray[], int arraysize, int startIndex, int length);
 void updateLocs(string cmd, float locs[]);
 string timenow();
 void sleeppi(int duration);
-string statusWrapper(int armid, int cmdid, string statuss[], int statuss_len);
+string statusWrapper(int armid, int cmdid, int isinit, string statuss[], int statuss_len);
 string updateStatusJson(int armid, int cmdid, string cmds, string durations, float locs[]);
+std::unordered_map<std::string, int> parseServerMsg(const std::string& jsonString);
 
 void sendmsgThread(Mirobot* ptr, string str, int* flag);
 void appendToFile(const std::string& str, const std::string& filename);
