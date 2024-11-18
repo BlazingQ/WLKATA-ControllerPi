@@ -70,12 +70,12 @@ void sleeppi(int duration){
 }
 
 //应该有必要传递一下谁需要验证，跳过了空字符串
-string statusWrapper(int armid, int cmdid, int isinit, string statuss[], int statuss_len) {
+string statusWrapper(int armid, int vrfid, int isinit, string statuss[], int statuss_len) {
     cJSON *json = cJSON_CreateObject();
 
-    cJSON_AddNumberToObject(json, "armid", armid);
-    cJSON_AddNumberToObject(json, "cmdid", cmdid);
-    cJSON_AddNumberToObject(json, "isinit", isinit);
+    cJSON_AddNumberToObject(json, "ArmId", armid);
+    cJSON_AddNumberToObject(json, "VrfId", vrfid);
+    cJSON_AddNumberToObject(json, "IsInit", isinit);
     cJSON *armsArray = cJSON_CreateArray();
     // cJSON *finalArray = cJSON_CreateArray();
     for (int i = 0; i < statuss_len; i++) {
@@ -134,14 +134,14 @@ std::unordered_map<std::string, int> parseServerMsg(const std::string& jsonStrin
     }
 
     // 提取字段并存储在字典中
-    cJSON* armid = cJSON_GetObjectItem(json, "armid");
-    cJSON* cmdid = cJSON_GetObjectItem(json, "cmdid");
-    cJSON* vrfres = cJSON_GetObjectItem(json, "vrfres");
+    cJSON* armid = cJSON_GetObjectItem(json, "ArmId");
+    cJSON* vrfid = cJSON_GetObjectItem(json, "VrfId");
+    cJSON* vrfres = cJSON_GetObjectItem(json, "VrfRes");
 
-    if (armid != nullptr && cmdid != nullptr && vrfres != nullptr) {
-        result["armid"] = armid->valueint;
-        result["cmdid"] = cmdid->valueint;
-        result["vrfres"] = vrfres->valueint;
+    if (armid != nullptr && vrfid != nullptr && vrfres != nullptr) {
+        result["ArmId"] = armid->valueint;
+        result["VrfId"] = vrfid->valueint;
+        result["VrfRes"] = vrfres->valueint;
     }
 
     // 释放 cJSON 对象
