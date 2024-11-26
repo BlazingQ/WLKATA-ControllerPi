@@ -1,72 +1,12 @@
 #include "tcppi.h"
 
 
-// 将单个指令串转换为字符串数组，指定起始索引和长度
-std::vector<std::string> decodeCommaStr(const std::string& commands, int startIndex, int length) {
-    std::vector<std::string> commandArray;
-    std::stringstream ss(commands);
-    std::string command;
-    int index = 0;
-
-    while (std::getline(ss, command, ',')) {
-        if (index >= startIndex && index < startIndex + length) {
-            commandArray.push_back(command);
-        }
-        index++;
-    }
-
-    return commandArray;
-}
-
-std::string subCommaStr(const std::string& commands, int startIndex, int length) {
-    std::string subcmdstr;
-    std::stringstream ss(commands);
-    std::string command;
-    int index = 0;
-
-    while (std::getline(ss, command, ',')) {
-        if (index >= startIndex && index < startIndex + length) {
-            if(!subcmdstr.empty()){
-                subcmdstr += ",";
-            }
-            subcmdstr += command;
-        }
-        index++;
-    }
-
-    return subcmdstr;
-}
-
-// 将字符串数组转换为单个指令串，指定起始索引和长度
-std::string encodeCommaStr(std::string commandArray[], int arraysize, int startIndex, int length) {
-    std::string commands;
-    
-    for (int i = startIndex; i < startIndex + length && i < arraysize; ++i) {
-        commands += commandArray[i];
-        if (i < startIndex + length - 1 && i < arraysize - 1) {
-            commands += ","; // 在每个指令后添加逗号，除了最后一个
-        }
-    }
-
-    return commands;
-}
 void sendmsgThread(Mirobot* ptr, string str, int* flag){
     if(ptr){
         ptr->send_msg(str, true);
     }
     *flag = 1;
     
-}
-
-string timenow(){
-    auto now = std::chrono::high_resolution_clock::now();
-    auto duration_since_epoch = now.time_since_epoch();
-    long long int millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration_since_epoch).count();
-    return to_string(millis);
-}
-
-void sleeppi(int duration){
-    std::this_thread::sleep_for(std::chrono::milliseconds(duration));
 }
 
 //应该有必要传递一下谁需要验证，跳过了空字符串
@@ -98,7 +38,7 @@ string statusWrapper(int armid, int vrfid, int isinit, string statuss[], int sta
 }
 
 //根据ARM存储的内容更新自身状态，传输给中控
-string updateStatusJson(int armid, int cmdid, string cmds, string durations, float locs[]) {
+string updateStatusJson(int armid, int cmdid, string cmds, string durations, float locs[], string starttime) {
 
     cJSON *json = cJSON_CreateObject();
     std::ostringstream oss;
@@ -115,7 +55,7 @@ string updateStatusJson(int armid, int cmdid, string cmds, string durations, flo
     cJSON_AddStringToObject(json, "Cmds", cmds.c_str());
     cJSON_AddStringToObject(json, "Durations", durations.c_str());
     cJSON_AddStringToObject(json, "Locs", locsstr.c_str());
-    cJSON_AddStringToObject(json, "StartTime", timenow().c_str());
+    cJSON_AddStringToObject(json, "StartTime", starttime.c_str());
 
     string jsonstr = string(cJSON_Print(json));
     
@@ -205,18 +145,120 @@ void updateLocs(string cmd, float locs[]){
 }
 
 
+//直接假定两个id都是完全有效的
+int getVrfTime(int cmdid, string starttime, int vrfid, string durations[]){
+    int duration = 0;
+    int ret = 0;
+    for(int i = cmdid; i < vrfid; ++i){
+        duration += stoi(durations[i]);
+    }
+    int temptime = static_cast<int>(stoll(timenow()) - stoll(starttime));
+    ret = max(0, duration - temptime - 1000);
+    return ret;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+}
+
+// 将单个指令串转换为字符串数组，指定起始索引和长度
+std::vector<std::string> decodeCommaStr(const std::string& commands, int startIndex, int length) {
+    std::vector<std::string> commandArray;
+    std::stringstream ss(commands);
+    std::string command;
+    int index = 0;
+
+    while (std::getline(ss, command, ',')) {
+        if (index >= startIndex && index < startIndex + length) {
+            commandArray.push_back(command);
+        }
+        index++;
+    }
+
+    return commandArray;
+}
+
+std::string subCommaStr(const std::string& commands, int startIndex, int length) {
+    std::string subcmdstr;
+    std::stringstream ss(commands);
+    std::string command;
+    int index = 0;
+
+    while (std::getline(ss, command, ',')) {
+        if (index >= startIndex && index < startIndex + length) {
+            if(!subcmdstr.empty()){
+                subcmdstr += ",";
+            }
+            subcmdstr += command;
+        }
+        index++;
+    }
+
+    return subcmdstr;
+}
+
+// 将字符串数组转换为单个指令串，指定起始索引和长度
+std::string encodeCommaStr(std::string commandArray[], int arraysize, int startIndex, int length) {
+    std::string commands;
+    
+    for (int i = startIndex; i < startIndex + length && i < arraysize; ++i) {
+        commands += commandArray[i];
+        if (i < startIndex + length - 1 && i < arraysize - 1) {
+            commands += ","; // 在每个指令后添加逗号，除了最后一个
+        }
+    }
+
+    return commands;
+}
+
+vector<int> commaStrtoInt(const string& commands, int startIndex, int length) {
+    vector<int> commandArray;
+    stringstream ss(commands);
+    string command;
+    int index = 0;
+
+    while (getline(ss, command, ',')) {
+        if (index >= startIndex && index < startIndex + length) {
+            commandArray.push_back(stoi(command));
+        }
+        index++;
+    }
+
+    return commandArray;
+}
+
+string timenow(){
+    auto now = std::chrono::high_resolution_clock::now();
+    auto duration_since_epoch = now.time_since_epoch();
+    long long int millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration_since_epoch).count();
+    return to_string(millis);
+}
+
+void sleeppi(int duration){
+    std::this_thread::sleep_for(std::chrono::milliseconds(duration));
+}
+
 
 void appendToFile(const std::string& str, const std::string& filename) {
     // 打开文件，使用 std::ios::app 模式以追加方式写入
     std::ofstream file(filename, std::ios::app);
     if (file.is_open()) {
-        // 写入字符串并添加换行符
-        file << str << ',';
+        file << str << ' ';
         // 关闭文件
         file.close();
     } else {
         // 文件打开失败，输出错误消息
         std::cerr << "Unable to open file: " << filename << std::endl;
+    }
+}
+
+void overwriteToFile(const string& str, const string& filename) {
+    // 打开文件，使用 ios::out 模式以覆盖方式写入
+    ofstream file(filename, ios::out);
+    if (file.is_open()) {
+        // 写入字符串并添加换行符
+        file << str;
+        // 关闭文件
+        file.close();
+    } else {
+        // 文件打开失败，输出错误消息
+        cerr << "Unable to open file: " << filename << endl;
     }
 }
 
