@@ -21,18 +21,27 @@ using namespace std;
 
 const int leadtime = 2000;
 
+struct ServerMsg {
+    int armId;
+    std::string cmds;
+    std::string time;
+    int vrfId;
+    int vrfRes;
+};
+
 void updateLocs(string cmd, float locs[]);
+int updateCmds(int vrfid, string cmds[], string durations[], int size, const string newcmds);
 string timenow();
 void sleeppi(int duration);
 string statusWrapper(int armid, int cmdid, int isinit, string statuss[], int statuss_len);
 string updateStatusJson(int armid, int cmdid, string cmds, string durations, float locs[], string starttime);
-std::unordered_map<std::string, int> parseServerMsg(const std::string& jsonString);
+ServerMsg parseServerMsg(const std::string& jsonString);
 int getVrfTime(int cmdid, string starttime, int vrfid, string durations[]);
 
-std::vector<std::string> decodeCommaStr(const std::string& commands, int startIndex, int length);
+std::vector<std::string> decodeCommaStr(const std::string& commands, int startIndex, int length = INT_MAX);
 std::string subCommaStr(const std::string& commands, int startIndex, int length);
-std::string encodeCommaStr(std::string commandArray[], int arraysize, int startIndex, int length);
-vector<int> commaStrtoInt(const string& commands, int startIndex, int length);
+std::string encodeCommaStr(std::string commandArray[], int arraysize, int startIndex, int length = INT_MAX);
+vector<int> commaStrtoInt(const string& commands, int startIndex, int length = INT_MAX);
 void sendmsgThread(Mirobot* ptr, string str, int* flag);
 void appendToFile(const std::string& str, const std::string& filename);
 void overwriteToFile(const string& str, const string& filename);

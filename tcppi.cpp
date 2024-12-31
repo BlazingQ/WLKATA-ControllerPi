@@ -62,31 +62,56 @@ string updateStatusJson(int armid, int cmdid, string cmds, string durations, flo
     return jsonstr;
 }
 
-std::unordered_map<std::string, int> parseServerMsg(const std::string& jsonString) {
-    // 创建一个字典来存储解析结果
-    std::unordered_map<std::string, int> result;
+ServerMsg parseServerMsg(const std::string& jsonString) {
+    ServerMsg result = {0, "", "", 0, 0};
 
     // 解析 JSON 字符串
     cJSON* json = cJSON_Parse(jsonString.c_str());
     if (json == nullptr) {
         std::cerr << "JSON解析失败" << std::endl;
-        return result; // 返回空字典
+        return result;
     }
 
-    // 提取字段并存储在字典中
+    // 提取字段并存储在结构体中
     cJSON* armid = cJSON_GetObjectItem(json, "ArmId");
+    cJSON* cmds = cJSON_GetObjectItem(json, "Cmds");
+    cJSON* time = cJSON_GetObjectItem(json, "Time");
     cJSON* vrfid = cJSON_GetObjectItem(json, "VrfId");
     cJSON* vrfres = cJSON_GetObjectItem(json, "VrfRes");
 
-    if (armid != nullptr && vrfid != nullptr && vrfres != nullptr) {
-        result["ArmId"] = armid->valueint;
-        result["VrfId"] = vrfid->valueint;
-        result["VrfRes"] = vrfres->valueint;
+    if (armid != nullptr && cmds != nullptr && time != nullptr && vrfid != nullptr && vrfres != nullptr) {
+        result.armId = armid->valueint;
+        result.cmds = cmds->valuestring;
+        result.time = time->valuestring;
+        result.vrfId = vrfid->valueint;
+        result.vrfRes = vrfres->valueint;
     }
 
-    // 释放 cJSON 对象
     cJSON_Delete(json);
-    return result; // 返回结果字典
+    return result;
+}
+
+/*参数：vrfid 被验证的cmd的index并需要将其替换，newcmds 返回的服务器消息中的用于替换的cmds
+返回：修改后的总的cmds和durations的size大小，在YYAUTO中更新*/
+int updateCmds(int vrfid, string cmds[], string durations[], int size, const string newcmds) {
+    vector<string> newCmdArray = decodeCommaStr(newcmds, 0, INT_MAX);
+    int newSize = size - 1 + newCmdArray.size();
+    
+    // Shift existing commands after vrfid to make space
+    for(int i = size-1; i > vrfid; i--) {
+        if(newCmdArray.size() > 1) {
+            cmds[i + newCmdArray.size() - 1] = cmds[i];
+            durations[i + newCmdArray.size() - 1] = durations[i];
+        }
+    }
+    
+    // Insert new commands
+    for(int i = 0; i < newCmdArray.size(); i++) {
+        cmds[vrfid + i] = newCmdArray[i];
+        durations[vrfid + i] = "1000";
+    }
+    
+    return newSize;
 }
 
 //这个算法的正确基于发出的指令被执行，即指令本身不能是错的
@@ -153,6 +178,7 @@ int getVrfTime(int cmdid, string starttime, int vrfid, string durations[]){
         duration += stoi(durations[i]);
     }
     int temptime = static_cast<int>(stoll(timenow()) - stoll(starttime));
+    // cout<<"\nduration = "<<duration<<"\ntemptime = "
     ret = max(0, duration - temptime - 1000);
     return ret;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 }
