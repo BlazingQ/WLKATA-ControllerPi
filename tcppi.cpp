@@ -80,11 +80,16 @@ ServerMsg parseServerMsg(const std::string& jsonString) {
     cJSON* vrfres = cJSON_GetObjectItem(json, "VrfRes");
 
     if (armid != nullptr && cmds != nullptr && time != nullptr && vrfid != nullptr && vrfres != nullptr) {
-        result.armId = armid->valueint;
-        result.cmds = cmds->valuestring;
-        result.time = time->valuestring;
-        result.vrfId = vrfid->valueint;
-        result.vrfRes = vrfres->valueint;
+        if (cJSON_IsNumber(armid) && cJSON_IsString(cmds) && cJSON_IsString(time) && 
+            cJSON_IsNumber(vrfid) && cJSON_IsNumber(vrfres)) { //type dismatch leading to segmentation fault
+            result.armId = armid->valueint;
+            result.cmds = cmds->valuestring;
+            result.time = time->valuestring;
+            result.vrfId = vrfid->valueint;
+            result.vrfRes = vrfres->valueint;
+        }else{
+            std::cerr << "JSON type dismatch" << std::endl;
+        }
     }
 
     cJSON_Delete(json);
@@ -108,7 +113,9 @@ int updateCmds(int vrfid, string cmds[], string durations[], int size, const str
     // Insert new commands
     for(int i = 0; i < newCmdArray.size(); i++) {
         cmds[vrfid + i] = newCmdArray[i];
-        durations[vrfid + i] = "1000";
+        if(i > 0){
+            durations[vrfid + i] = "1000";
+        }
     }
     
     return newSize;
