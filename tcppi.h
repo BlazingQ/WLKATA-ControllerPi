@@ -19,7 +19,7 @@
 using namespace std;
 // using json = nlohmann::json;
 
-const int leadtime = 2000;
+const int PRE_VRF_TIME = 1000;
 
 struct ServerMsg {
     int armId;
@@ -34,7 +34,7 @@ int updateCmds(int vrfid, string cmds[], string durations[], int size, const str
 string timenow();
 void sleeppi(int duration);
 string statusWrapper(int armid, int cmdid, int isinit, string statuss[], int statuss_len);
-string updateStatusJson(int armid, int cmdid, string cmds, string durations, float locs[], string starttime);
+string updateStatusJson(int armid, int cmdid, string cmds[], string durations[], int size, float locs[], string starttime);
 ServerMsg parseServerMsg(const std::string& jsonString);
 int getVrfTime(int cmdid, string starttime, int vrfid, string durations[]);
 

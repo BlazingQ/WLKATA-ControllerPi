@@ -16,6 +16,7 @@ string statusWrapper(int armid, int vrfid, int isinit, string statuss[], int sta
     cJSON_AddNumberToObject(json, "ArmId", armid);
     cJSON_AddNumberToObject(json, "VrfId", vrfid);
     cJSON_AddNumberToObject(json, "IsInit", isinit);
+    cJSON_AddStringToObject(json, "ConstructTime", timenow().c_str());
     cJSON *armsArray = cJSON_CreateArray();
     // cJSON *finalArray = cJSON_CreateArray();
     for (int i = 0; i < statuss_len; i++) {
@@ -37,23 +38,39 @@ string statusWrapper(int armid, int vrfid, int isinit, string statuss[], int sta
     return string(cJSON_Print(json));
 }
 
-//根据ARM存储的内容更新自身状态，传输给中控
-string updateStatusJson(int armid, int cmdid, string cmds, string durations, float locs[], string starttime) {
+//根据ARM存储的内容更新自身状态，传输给中控. cmdid对应cmds中第一条指令的index
+string updateStatusJson(int armid, int cmdid, string cmds[], string durations[], int size, float locs[], string starttime) {
 
     cJSON *json = cJSON_CreateObject();
-    std::ostringstream oss;
+    std::ostringstream oss1;
     for(int i = 0; i < 6; ++i) {
         if(i != 0) {
-            oss << ","; 
+            oss1 << ","; 
         }
-        oss << locs[i];
+        oss1 << locs[i];
     }
-    string locsstr = oss.str();
+    string locsstr = oss1.str();
+
+    std::ostringstream oss2;
+    std::ostringstream oss3;
+    for(int i = 0; i < 10; ++i) {
+        if(i + cmdid < size){
+            if(i != 0) {
+                oss2 << ","; 
+                oss3 << ",";
+            }
+            oss2 << cmds[i + cmdid];
+            oss3 << durations[i + cmdid];
+        }
+    }
+    string newcmds = oss2.str();
+    string newdurations = oss3.str();
+
     
     cJSON_AddNumberToObject(json, "ArmId", armid);
     cJSON_AddNumberToObject(json, "CmdId", cmdid);
-    cJSON_AddStringToObject(json, "Cmds", cmds.c_str());
-    cJSON_AddStringToObject(json, "Durations", durations.c_str());
+    cJSON_AddStringToObject(json, "Cmds", newcmds.c_str());
+    cJSON_AddStringToObject(json, "Durations", newdurations.c_str());
     cJSON_AddStringToObject(json, "Locs", locsstr.c_str());
     cJSON_AddStringToObject(json, "StartTime", starttime.c_str());
 
@@ -177,7 +194,7 @@ void updateLocs(string cmd, float locs[]){
 }
 
 
-//直接假定两个id都是完全有效的
+//直接假定两个id都是完全有效的，还需要保证starttime和cmdid完全对应
 int getVrfTime(int cmdid, string starttime, int vrfid, string durations[]){
     int duration = 0;
     int ret = 0;
@@ -185,8 +202,7 @@ int getVrfTime(int cmdid, string starttime, int vrfid, string durations[]){
         duration += stoi(durations[i]);
     }
     int temptime = static_cast<int>(stoll(timenow()) - stoll(starttime));
-    // cout<<"\nduration = "<<duration<<"\ntemptime = "
-    ret = max(0, duration - temptime - 1000);
+    ret = max(0, duration - temptime - PRE_VRF_TIME);
     return ret;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 }
 
