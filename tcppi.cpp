@@ -288,7 +288,7 @@ void appendToFile(const std::string& str, const std::string& filename) {
     // 打开文件，使用 std::ios::app 模式以追加方式写入
     std::ofstream file(filename, std::ios::app);
     if (file.is_open()) {
-        file << str << ' ';
+        file << str;
         // 关闭文件
         file.close();
     } else {

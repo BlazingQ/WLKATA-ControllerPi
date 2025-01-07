@@ -19,7 +19,7 @@
 using namespace std;
 // using json = nlohmann::json;
 
-const int PRE_VRF_TIME = 1000;
+const int PRE_VRF_TIME = 2000;
 
 struct ServerMsg {
     int armId;
