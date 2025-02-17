@@ -117,6 +117,9 @@ ServerMsg parseServerMsg(const std::string& jsonString) {
 返回：修改后的总的cmds和durations的size大小，在YYAUTO中更新*/
 int updateCmds(int vrfid, string cmds[], string durations[], int size, const string newcmds) {
     vector<string> newCmdArray = decodeCommaStr(newcmds, 0, INT_MAX);
+    if(newCmdArray.size() == 0){
+        return size;
+    }
     int newSize = size - 1 + newCmdArray.size();
     
     // Shift existing commands after vrfid to make space

@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include<unordered_map>
+#include <vector>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
