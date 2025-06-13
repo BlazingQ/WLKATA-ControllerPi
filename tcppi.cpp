@@ -115,9 +115,9 @@ ServerMsg parseServerMsg(const std::string& jsonString) {
 
 /*参数：vrfid 被验证的cmd的index并需要将其替换，newcmds 返回的服务器消息中的用于替换的cmds
 返回：修改后的总的cmds和durations的size大小，在YYAUTO中更新*/
-int updateCmds(int vrfid, string cmds[], string durations[], int size, const string newcmds) {
+int updateCmds(int vrfid, string cmds[], string durations[], int size, const string newcmds, bool isvrfonly) {
     vector<string> newCmdArray = decodeCommaStr(newcmds, 0, INT_MAX);
-    if(newCmdArray.size() == 0){
+    if(newCmdArray.size() == 0){ //关键机制，如果没有新的指令，不作修改
         return size;
     }
     int newSize = size - 1 + newCmdArray.size();
@@ -134,7 +134,10 @@ int updateCmds(int vrfid, string cmds[], string durations[], int size, const str
     for(int i = 0; i < newCmdArray.size(); i++) {
         cmds[vrfid + i] = newCmdArray[i];
         if(i > 0){
-            durations[vrfid + i] = "1000";
+            if(!isvrfonly)
+                durations[vrfid + i] = "1000";
+            else
+                durations[vrfid + i] = "4000";
         }
     }
     

@@ -31,7 +31,7 @@ struct ServerMsg {
 };
 
 void updateLocs(string cmd, float locs[]);
-int updateCmds(int vrfid, string cmds[], string durations[], int size, const string newcmds);
+int updateCmds(int vrfid, string cmds[], string durations[], int size, const string newcmds, bool isvrfonly);
 string timenow();
 void sleeppi(int duration);
 string statusWrapper(int armid, int cmdid, int isinit, string statuss[], int statuss_len);
